@@ -1,549 +1,301 @@
-import { logger } from '../utils/logger.js';
-
-
-export const botConfig = {
-  // =========================
-  // BOT PRESENCE (what users see under the bot name)
-  // =========================
-  // `status` options:
-  // - "online"    = green dot
-  // - "idle"      = yellow moon
-  // - "dnd"       = red do-not-disturb
-  // - "invisible" = appears offline
-  presence: {
-    // Current online state shown on Discord.
-    status: "online",
-
-    // Activity lines shown under the bot name.
-    // `type` number mapping from Discord:
-    // 0 = Playing
-    // 1 = Streaming
-    // 2 = Listening
-    // 3 = Watching
-    // 4 = Custom
-    // 5 = Competing
-    activities: [
-      {
-        // Text users will see (example: "Playing /help | Titan Bot").
-        name: "Made with ❤️",
-        // Activity type number (0 = Playing).
-        type: 0, 
-      },
-    ],
-  },
-
-  // =========================
-  // COMMAND BEHAVIOR
-  // =========================
-  commands: {
-    // Bot owner user IDs (comma-separated in OWNER_IDS env var).
-    // Owners can access owner/admin-level bot commands.
-    owners: process.env.OWNER_IDS?.split(",") || [],
-
-    // Default wait time between command uses (in seconds).
-    defaultCooldown: 3, 
-
-    // If true, old commands are removed before re-registering.
-    deleteCommands: false,
-
-    // Optional server ID used for testing slash commands quickly.
-    testGuildId: process.env.TEST_GUILD_ID,
-  },
-
-  // =========================
-  // APPLICATIONS SYSTEM
-  // =========================
-  applications: {
-    // Default questions shown when someone fills out an application.
-    defaultQuestions: [
-      { question: "What is your name?", required: true },
-      { question: "How old are you?", required: true },
-      { question: "Why do you want to join?", required: true },
-    ],
-
-    // Embed colors by application status.
-    statusColors: {
-      pending: "#FFA500",
-      approved: "#00FF00",
-      denied: "#FF0000",
-    },
-
-    // How long users must wait before submitting another application (hours).
-    applicationCooldown: 24, 
-
-    // Auto-delete denied applications after this many days.
-    deleteDeniedAfter: 7, 
-
-    // Auto-delete approved applications after this many days.
-    deleteApprovedAfter: 30, 
-
-    // Role IDs allowed to manage applications.
-    managerRoles: [], // Will be populated from environment or database
-  },
-
-  // =========================
-  // EMBED COLORS & BRANDING
-  // =========================
-  // IMPORTANT: This is the SINGLE SOURCE OF TRUTH for all bot colors
-  embeds: {
-    colors: {
-      // Main brand colors.
-      primary: "#336699", 
-      secondary: "#2F3136", 
-
-      // Standard status colors for success/error/warning/info messages.
-      success: "#57F287", 
-      error: "#ED4245", 
-      warning: "#FEE75C", 
-      info: "#3498DB", 
-
-      // Neutral utility colors.
-      light: "#FFFFFF",
-      dark: "#202225",
-      gray: "#99AAB5",
-
-      // Discord-style palette shortcuts.
-      blurple: "#5865F2",
-      green: "#57F287",
-      yellow: "#FEE75C",
-      fuchsia: "#EB459E",
-      red: "#ED4245",
-      black: "#000000",
-
-      // Feature-specific colors.
-      giveaway: {
-        active: "#57F287",
-        ended: "#ED4245",
-      },
-      ticket: {
-        open: "#57F287",
-        claimed: "#FAA61A",
-        closed: "#ED4245",
-        pending: "#99AAB5",
-      },
-      economy: "#F1C40F",
-      birthday: "#E91E63",
-      moderation: "#9B59B6",
-
-      // Ticket priority color mapping.
-      priority: {
-        none: "#95A5A6",
-        low: "#3498db",
-        medium: "#2ecc71",
-        high: "#f1c40f",
-        urgent: "#e74c3c",
-      },
-    },
-    footer: {
-      // Default footer text used in bot embeds.
-      text: "Titan Bot",
-      // Footer icon URL (null = no icon).
-      icon: null,
-    },
-    // Default thumbnail URL for embeds (null = no thumbnail).
-    thumbnail: null,
-    author: {
-      // Optional default embed author block.
-      name: null,
-      icon: null,
-      url: null,
-    },
-  },
-
-  // =========================
-  // ECONOMY SETTINGS
-  // =========================
-  economy: {
-    currency: {
-      // Currency display name.
-      name: "coins",
-      // Plural display name.
-      namePlural: "coins",
-      // Currency symbol shown in balances.
-      symbol: "$",
-    },
-
-    // Starting balance for new users.
-    startingBalance: 0,
-
-    // Maximum bank amount before upgrades (if upgrades are used).
-    baseBankCapacity: 100000,
-
-    // Daily reward amount.
-    dailyAmount: 100,
-
-    // Work command random payout range.
-    workMin: 10,
-    workMax: 100,
-
-    // Beg command random payout range.
-    begMin: 5,
-    begMax: 50,
-
-    // Chance to succeed when robbing (0.4 = 40%).
-    robSuccessRate: 0.4,
-
-    // Jail time after failed rob (milliseconds).
-    // 3600000 = 1 hour.
-    robFailJailTime: 3600000, 
-  },
-
-  // =========================
-  // SHOP SETTINGS
-  // =========================
-  // Add shop defaults here when needed.
-  shop: {
-    
-  },
-
-  // =========================
-  // TICKET SYSTEM
-  // =========================
-  tickets: {
-    // Category ID where new tickets are created (null = no forced category).
-    defaultCategory: null,
-
-    // Role IDs allowed to manage/support tickets.
-    supportRoles: [],
-
-    // Priority options users/staff can assign.
-    priorities: {
-      none: {
-        emoji: "⚪",
-        color: "#95A5A6",
-        label: "None",
-      },
-      low: {
-        emoji: "🟢",
-        color: "#2ECC71",
-        label: "Low",
-      },
-      medium: {
-        emoji: "🟡",
-        color: "#F1C40F",
-        label: "Medium",
-      },
-      high: {
-        emoji: "🔴",
-        color: "#E74C3C",
-        label: "High",
-      },
-      urgent: {
-        emoji: "🚨",
-        color: "#E91E63",
-        label: "Urgent",
-      },
-    },
-
-    // Default priority for new tickets.
-    defaultPriority: "none",
-
-    // Category ID where closed tickets are archived.
-    archiveCategory: null,
-
-    // Channel ID where ticket logs are sent.
-    logChannel: null,
-  },
-
-  // =========================
-  // GIVEAWAY SETTINGS
-  // =========================
-  giveaways: {
-    // Default giveaway duration in milliseconds.
-    // 86400000 = 24 hours.
-    defaultDuration: 86400000, 
-
-    // Allowed winner count range.
-    minimumWinners: 1,
-    maximumWinners: 10,
-
-    // Allowed giveaway duration range in milliseconds.
-    // 300000 = 5 minutes.
-    minimumDuration: 300000, 
-    // 2592000000 = 30 days.
-    maximumDuration: 2592000000, 
-
-    // Role IDs allowed to host giveaways.
-    allowedRoles: [],
-
-    // Role IDs that bypass giveaway restrictions.
-    bypassRoles: [],
-  },
-
-  // =========================
-  // BIRTHDAY SETTINGS
-  // =========================
-  birthday: {
-    // Role ID given to users on their birthday.
-    defaultRole: null,
-
-    // Channel ID where birthday announcements are posted.
-    announcementChannel: null,
-
-    // Timezone used to calculate birthday dates.
-    timezone: "UTC",
-  },
-
-  // =========================
-  // VERIFICATION SETTINGS
-  // =========================
-  verification: {
-    // Message shown when posting the verification panel.
-    defaultMessage: "Click the button below to verify yourself and gain access to the server!",
-
-    // Text on the verification button.
-    defaultButtonText: "Verify",
-
-    // Automatic verification behavior.
-    autoVerify: {
-      // How automatic verification decides who is auto-approved:
-      // - "none"        = everyone is auto-verified immediately
-      // - "account_age" = account must be older than set days
-      // - "server_size" = auto-verify everyone only in smaller servers
-      defaultCriteria: "none",
-
-      // Days used when `defaultCriteria` is `account_age`.
-      defaultAccountAgeDays: 7,
-
-      // Member count threshold used when `defaultCriteria` is `server_size`.
-      // Example: 1000 means auto-verify if server has fewer than 1000 members.
-      serverSizeThreshold: 1000,
-
-      // Allowed safety limits for account-age requirements.
-      // 1 = minimum day, 365 = maximum days.
-      minAccountAge: 1,      
-      maxAccountAge: 365,    
-
-      // If true, user receives a DM after verification.
-      sendDMNotification: true,
-
-      // Human-readable descriptions for each criteria mode.
-      criteria: {
-        account_age: "Account must be older than specified days",
-        server_size: "All users if server has less than 1000 members",
-        none: "All users immediately"
-      }
-    },
-
-    // Minimum time between verification attempts (milliseconds).
-    // 5000 = 5 seconds.
-    verificationCooldown: 5000,  
-
-    // Maximum failed attempts allowed inside the time window below.
-    maxVerificationAttempts: 3,   
-
-    // Time window for counting attempts (milliseconds).
-    // 60000 = 1 minute.
-    attemptWindow: 60000,          
-
-    // In-memory safety limits (helps avoid unbounded memory growth).
-    maxCooldownEntries: 10000,
-    maxAttemptEntries: 10000,
-    // Cleanup frequency for cooldown/attempt maps (milliseconds).
-    // 300000 = 5 minutes.
-    cooldownCleanupInterval: 300000, 
-    // Maximum metadata payload size for audit entries (bytes).
-    maxAuditMetadataBytes: 4096,
-    // Maximum number of audit entries kept in memory.
-    maxInMemoryAuditEntries: 1000,
-  // If true, log every verification action.
-  logAllVerifications: true,
-  // If true, preserve verification audit history.
-  keepAuditTrail: true,
-  },
-
-  // =========================
-  // WELCOME / GOODBYE MESSAGES
-  // =========================
-  welcome: {
-    // Welcome template posted when a user joins.
-    // Placeholders: {user}, {server}, {memberCount}
-    defaultWelcomeMessage:
-      "Welcome {user} to {server}! We now have {memberCount} members!",
-    // Goodbye template posted when a user leaves.
-    // Placeholders: {user}, {memberCount}
-    defaultGoodbyeMessage:
-      "{user} has left the server. We now have {memberCount} members.",
-    // Channel ID for welcome messages.
-    defaultWelcomeChannel: null,
-    // Channel ID for goodbye messages.
-    defaultGoodbyeChannel: null,
-  },
-
-  // =========================
-  // COUNTER CHANNELS
-  // =========================
-  counters: {
-    defaults: {
-      // Default naming/description templates for counter entries.
-      name: "{name} Counter",
-      description: "Server {name} counter",
-      // Channel type used for counters (typically "voice").
-      type: "voice",
-      // Channel name format. `{count}` is replaced automatically.
-      channelName: "{name}-{count}",
-    },
-    permissions: {
-      // Default denied permissions for the counter channel.
-      deny: ["VIEW_CHANNEL"],
-      // Default allowed permissions for the counter channel.
-      allow: ["VIEW_CHANNEL", "CONNECT", "SPEAK"],
-    },
-    messages: {
-      // Default response messages for counter actions.
-      created: "✅ Created counter **{name}**",
-      deleted: "🗑️ Deleted counter **{name}**",
-      updated: "🔄 Updated counter **{name}**",
-    },
-    types: {
-      // Built-in counter types and how each count is calculated.
-      members: {
-        name: "👥 Members",
-        description: "Total members in the server",
-        getCount: (guild) => guild.memberCount.toString(),
-      },
-      bots: {
-        name: "🤖 Bots",
-        description: "Total bot accounts in the server",
-        getCount: (guild) =>
-          guild.members.cache.filter((m) => m.user.bot).size.toString(),
-      },
-      members_only: {
-        name: "👤 Humans",
-        description: "Total human members (non-bots)",
-        getCount: (guild) =>
-          guild.members.cache.filter((m) => !m.user.bot).size.toString(),
-      },
-    },
-  },
-
-  // =========================
-  // GENERIC BOT MESSAGES
-  // =========================
-  messages: {
-    noPermission: "You do not have permission to use this command.",
-    cooldownActive: "Please wait {time} before using this command again.",
-    errorOccurred: "An error occurred while executing this command.",
-    missingPermissions:
-      "I am missing required permissions to perform this action.",
-    commandDisabled: "This command has been disabled.",
-    maintenanceMode: "The bot is currently in maintenance mode.",
-  },
-
-  // =========================
-  // FEATURE TOGGLES
-  // =========================
-  // Set any feature to `false` to disable it globally.
-  features: {
-    // Core systems.
-    economy: true,
-    leveling: true,
-    moderation: true,
-    logging: true,
-    welcome: true,
-
-    // Community engagement systems.
-    tickets: true,
-    giveaways: true,
-    birthday: true,
-    counter: true,
-
-    // Security and self-service systems.
-    verification: true,
-    reactionRoles: true,
-    joinToCreate: true,
-
-    // Utility/quality-of-life modules.
-    voice: true,
-    search: true,
-    tools: true,
-    utility: true,
-    community: true,
-    fun: true,
-  },
-};
-
-
-export function validateConfig(config) {
-  const errors = [];
-
-  
-  if (process.env.NODE_ENV !== 'production') {
-    logger.debug('Environment variables check:');
-    logger.debug('DISCORD_TOKEN exists:', !!process.env.DISCORD_TOKEN);
-    logger.debug('TOKEN exists:', !!process.env.TOKEN);
-    logger.debug('CLIENT_ID exists:', !!process.env.CLIENT_ID);
-    logger.debug('GUILD_ID exists:', !!process.env.GUILD_ID);
-    logger.debug('POSTGRES_HOST exists:', !!process.env.POSTGRES_HOST);
-    logger.debug('NODE_ENV:', process.env.NODE_ENV);
+const { Client, GatewayIntentBits, Partials, PermissionsBitField, EmbedBuilder } = require('discord.js');
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessageReactions,
+  ],
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+});
+
+// ─── Queue Storage ────────────────────────────────────────────────────────────
+// queue: Array of { teamName, players: [string], submittedBy: userId, timestamp }
+const queue = [];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
-
-  if (!process.env.DISCORD_TOKEN && !process.env.TOKEN) {
-    errors.push("Bot token is required (DISCORD_TOKEN or TOKEN environment variable)");
-  }
-
-  if (!process.env.CLIENT_ID) {
-    errors.push("Client ID is required (CLIENT_ID environment variable)");
-  }
-
-  
-  if (process.env.NODE_ENV === 'production') {
-    if (!process.env.POSTGRES_HOST) {
-      errors.push("PostgreSQL host is required in production (POSTGRES_HOST environment variable)");
-    }
-    if (!process.env.POSTGRES_USER) {
-      errors.push("PostgreSQL user is required in production (POSTGRES_USER environment variable)");
-    }
-    if (!process.env.POSTGRES_PASSWORD) {
-      errors.push("PostgreSQL password is required in production (POSTGRES_PASSWORD environment variable)");
-    }
-  }
-
-  return errors;
+  return a;
 }
 
+function buildQueueEmbed(guild) {
+  const embed = new EmbedBuilder()
+    .setTitle('📋 Current Queue')
+    .setColor(0x5865f2)
+    .setTimestamp();
 
-const configErrors = validateConfig(botConfig);
-if (configErrors.length > 0) {
-  logger.error("Bot configuration errors:", configErrors.join("\n"));
-  if (process.env.NODE_ENV === "production") {
-    process.exit(1);
+  if (queue.length === 0) {
+    embed.setDescription('No teams in the queue yet. Use `!joinqueue` to enter!');
+  } else {
+    queue.forEach((team, i) => {
+      embed.addFields({
+        name: `#${i + 1} — ${team.teamName}`,
+        value: `**Players:** ${team.players.join(', ')}`,
+        inline: false,
+      });
+    });
+    embed.setFooter({ text: `${queue.length} team(s) waiting • Need 2+ to match` });
   }
+
+  return embed;
 }
 
+// ─── Ready ────────────────────────────────────────────────────────────────────
 
-export const BotConfig = botConfig;
+client.once('ready', () => {
+  console.log(`✅ Logged in as ${client.user.tag}`);
+  client.user.setActivity('!help for commands');
+});
 
-export function getColor(path, fallback = "#99AAB5") {
-  
-  if (typeof path === "number") return path;
-  if (typeof path === "string" && path.startsWith("#")) {
-    
-    return parseInt(path.replace("#", ""), 16);
-  }
-  const result = path
-    .split(".")
-    .reduce(
-      (obj, key) => (obj && obj[key] !== undefined ? obj[key] : fallback),
-      botConfig.embeds.colors,
+// ─── Message Handler ──────────────────────────────────────────────────────────
+
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+
+  const content = message.content.trim();
+
+  // ── Role Assignment: @Bot @User RoleName ──────────────────────────────────
+  // Format: @BotMention @UserMention RoleName
+  if (message.mentions.has(client.user) && message.mentions.users.size >= 2) {
+    const mentionedUsers = [...message.mentions.users.values()].filter(
+      (u) => u.id !== client.user.id
     );
-  
-  // Convert the result to integer if it's a hex string
-  if (typeof result === "string" && result.startsWith("#")) {
-    return parseInt(result.replace("#", ""), 16);
+
+    if (mentionedUsers.length === 0) return;
+
+    // Strip both @mentions from content to get the role name
+    let roleName = content
+      .replace(/<@!?[\d]+>/g, '')
+      .trim();
+
+    if (!roleName) {
+      return message.reply(
+        '⚠️ Please specify a role name after the mentions.\nExample: `@Bot @User Owner`'
+      );
+    }
+
+    const targetUser = mentionedUsers[0];
+    const guild = message.guild;
+
+    try {
+      // Find or create the role
+      let role = guild.roles.cache.find(
+        (r) => r.name.toLowerCase() === roleName.toLowerCase()
+      );
+
+      if (!role) {
+        role = await guild.roles.create({
+          name: roleName,
+          color: 0x5865f2,
+          reason: `Auto-created by bot for ${message.author.tag}`,
+        });
+        console.log(`Created new role: ${roleName}`);
+      }
+
+      const member = await guild.members.fetch(targetUser.id);
+      await member.roles.add(role);
+
+      const embed = new EmbedBuilder()
+        .setColor(0x57f287)
+        .setTitle('✅ Role Assigned')
+        .setDescription(`**${targetUser.username}** has been given the **${role.name}** role.`)
+        .setTimestamp();
+
+      return message.reply({ embeds: [embed] });
+    } catch (err) {
+      console.error('Role assignment error:', err);
+      return message.reply(
+        `❌ Failed to assign role. Make sure I have **Manage Roles** permission and my role is above the target role.\n\`${err.message}\``
+      );
+    }
   }
-  return result;
+
+  // ── Prefix Commands ───────────────────────────────────────────────────────
+  if (!content.startsWith('!')) return;
+
+  const args = content.slice(1).trim().split(/\s+/);
+  const command = args.shift().toLowerCase();
+
+  // ── !help ─────────────────────────────────────────────────────────────────
+  if (command === 'help') {
+    const embed = new EmbedBuilder()
+      .setTitle('🤖 Bot Commands')
+      .setColor(0x5865f2)
+      .addFields(
+        {
+          name: '🎮 Queue System',
+          value: [
+            '`!joinqueue TeamName Player1, Player2, ...` — Add your team to the queue',
+            '`!leavequeue TeamName` — Remove your team from the queue',
+            '`!queue` — Show all teams currently in the queue',
+            '`!match` — Randomly pair 2 teams from the queue',
+            '`!clearqueue` — Clear the entire queue (Admin only)',
+          ].join('\n'),
+        },
+        {
+          name: '🏷️ Role Assignment',
+          value: '`@Bot @User RoleName` — Give a user a role (creates it if it doesn\'t exist)',
+        }
+      )
+      .setFooter({ text: 'Any server member can use all commands' });
+
+    return message.reply({ embeds: [embed] });
+  }
+
+  // ── !joinqueue TeamName Player1, Player2, ... ─────────────────────────────
+  if (command === 'joinqueue') {
+    // Format: !joinqueue TeamName Player1, Player2, Player3
+    // Everything before the first comma group is team name, rest are players
+    // We'll split on the first space for team name, rest = player list
+    if (args.length < 2) {
+      return message.reply(
+        '⚠️ Usage: `!joinqueue TeamName Player1, Player2, Player3`\nExample: `!joinqueue BlueSquad Alice, Bob, Charlie`'
+      );
+    }
+
+    const teamName = args[0];
+    const playerString = args.slice(1).join(' ');
+    const players = playerString.split(',').map((p) => p.trim()).filter(Boolean);
+
+    if (players.length === 0) {
+      return message.reply('⚠️ Please list at least one player name after the team name.');
+    }
+
+    // Check for duplicate team name
+    const duplicate = queue.find(
+      (t) => t.teamName.toLowerCase() === teamName.toLowerCase()
+    );
+    if (duplicate) {
+      return message.reply(`⚠️ A team named **${teamName}** is already in the queue!`);
+    }
+
+    queue.push({
+      teamName,
+      players,
+      submittedBy: message.author.id,
+      timestamp: Date.now(),
+    });
+
+    const embed = new EmbedBuilder()
+      .setColor(0x57f287)
+      .setTitle('✅ Team Joined Queue')
+      .addFields(
+        { name: 'Team', value: teamName, inline: true },
+        { name: 'Players', value: players.join(', '), inline: true },
+        { name: 'Position', value: `#${queue.length} in queue`, inline: true }
+      )
+      .setFooter({ text: `${queue.length} team(s) in queue` })
+      .setTimestamp();
+
+    return message.reply({ embeds: [embed] });
+  }
+
+  // ── !leavequeue TeamName ──────────────────────────────────────────────────
+  if (command === 'leavequeue') {
+    const teamName = args.join(' ');
+    if (!teamName) {
+      return message.reply('⚠️ Usage: `!leavequeue TeamName`');
+    }
+
+    const index = queue.findIndex(
+      (t) => t.teamName.toLowerCase() === teamName.toLowerCase()
+    );
+
+    if (index === -1) {
+      return message.reply(`❌ No team named **${teamName}** found in the queue.`);
+    }
+
+    const removed = queue.splice(index, 1)[0];
+
+    const embed = new EmbedBuilder()
+      .setColor(0xed4245)
+      .setTitle('🚪 Team Left Queue')
+      .setDescription(`**${removed.teamName}** has been removed from the queue.`)
+      .setFooter({ text: `${queue.length} team(s) remaining` })
+      .setTimestamp();
+
+    return message.reply({ embeds: [embed] });
+  }
+
+  // ── !queue ────────────────────────────────────────────────────────────────
+  if (command === 'queue') {
+    return message.reply({ embeds: [buildQueueEmbed(message.guild)] });
+  }
+
+  // ── !match ────────────────────────────────────────────────────────────────
+  if (command === 'match') {
+    if (queue.length < 2) {
+      return message.reply(
+        `❌ Not enough teams to match! There are only **${queue.length}** team(s) in the queue. Need at least **2**.`
+      );
+    }
+
+    // Pick 2 random teams
+    const shuffled = shuffle(queue);
+    const [team1, team2] = shuffled;
+
+    // Remove both from queue
+    const idx1 = queue.indexOf(team1);
+    queue.splice(idx1, 1);
+    const idx2 = queue.indexOf(team2);
+    queue.splice(idx2, 1);
+
+    const embed = new EmbedBuilder()
+      .setColor(0xfee75c)
+      .setTitle('⚔️ Match Found!')
+      .setDescription('Two teams have been randomly selected and matched!')
+      .addFields(
+        {
+          name: '🔵 Team 1',
+          value: `**${team1.teamName}**\n${team1.players.join(', ')}`,
+          inline: true,
+        },
+        { name: '🆚', value: '\u200b', inline: true },
+        {
+          name: '🔴 Team 2',
+          value: `**${team2.teamName}**\n${team2.players.join(', ')}`,
+          inline: true,
+        }
+      )
+      .setFooter({ text: `${queue.length} team(s) still in queue` })
+      .setTimestamp();
+
+    return message.reply({ embeds: [embed] });
+  }
+
+  // ── !clearqueue (Admin only) ──────────────────────────────────────────────
+  if (command === 'clearqueue') {
+    if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+      return message.reply('❌ Only admins can clear the queue.');
+    }
+
+    const count = queue.length;
+    queue.length = 0;
+
+    const embed = new EmbedBuilder()
+      .setColor(0xed4245)
+      .setTitle('🗑️ Queue Cleared')
+      .setDescription(`Removed **${count}** team(s) from the queue.`)
+      .setTimestamp();
+
+    return message.reply({ embeds: [embed] });
+  }
+});
+
+// ─── Login ────────────────────────────────────────────────────────────────────
+const token = process.env.DISCORD_TOKEN;
+if (!token) {
+  console.error('❌ DISCORD_TOKEN environment variable is not set!');
+  console.error('Set it with: export DISCORD_TOKEN=your_token_here');
+  process.exit(1);
 }
 
-export function getRandomColor() {
-  const colors = Object.values(botConfig.embeds.colors).flatMap((color) =>
-    typeof color === "string" ? color : Object.values(color),
-  );
-  return colors[Math.floor(Math.random() * colors.length)];
-}
-
-export default botConfig;
-
-
-
-
+client.login(token);
